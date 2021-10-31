@@ -64,6 +64,7 @@ public class WeatherForecastServiceImpl implements WeatherForecastService {
 @Override
     public WeatherForecast getWeather(LongLat longLat, String baseURL, String appId) {
         String methodName = "getWeather";
+        logger.debug("entering to class:"+getClass().getName()+" inside method:"+methodName+" having argument 1:"+longLat+" arg 2:"+baseURL+" arg 3:"+appId);
         boolean error = false;
         WeatherForecast weatherDetails = null;
         String country = longLat.getCountry();
