@@ -35,6 +35,12 @@ public class WeatherForecastServiceImplTest {
                         "}\n" +
                         "]")
                         .withStatus(200)));
+        stubFor(get(urlEqualTo("/onecall?lat=23.67&lon=56.87&units=metric&appid=apiKey"))
+                .willReturn(okJson("{\n" +
+                        "\"country\":\"DE\"\n" +
+                        "}")
+                .withStatus(200))
+        );
 
 
     }
@@ -62,6 +68,7 @@ public class WeatherForecastServiceImplTest {
         longLat.setLat("23.67");
         longLat.setLon("56.87");
         WeatherForecast weatherForecast = service.getWeather(longLat,"http://localhost:8089/onecall?","apiKey");
+        Assert.assertEquals("DE",weatherForecast.getCountry());
     }
 
 
