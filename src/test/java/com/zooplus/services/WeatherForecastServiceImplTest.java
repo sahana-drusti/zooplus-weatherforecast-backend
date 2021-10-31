@@ -2,11 +2,11 @@ package com.zooplus.services;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.UrlPath;
 import com.zooplus.model.LongLat;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import com.zooplus.model.WeatherForecast;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -15,24 +15,58 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 public class WeatherForecastServiceImplTest {
-    WireMockRule rule = new WireMockRule(8089);
+
     @InjectMocks
     WeatherForecastServiceImpl service;
+    WireMockServer server = new WireMockServer(8089);
+
+    @Before
     public void setUp(){
-        stubFor(get("http://localhost:8089?q=Munich&limit=1&appid=apiKey")
-                .willReturn(ok()
-                        .withStatus(200)
-                        .withBody("<response>SUCCESS</response>")));
+
+        configureFor("localhost",8089);
+        server.start();
+        //urlEqualTo("http://localhost:8089?q=Munich&limit=1&appid=apiKey")
+        stubFor(get(urlMatching("^.*direct.*$"))
+                .willReturn(okJson("[\n" +
+                        "{\n" +
+                        "\t\"country\":\"DE\",\n" +
+                        "\t\"lon\":\"23.87\",\n" +
+                        "\t\"lat\":\"34.67\"\n" +
+                        "}\n" +
+                        "]")
+                        .withStatus(200)));
+
+
     }
     @Test
     public void test_long_lat_result(){
         //when
-       LongLat longLat = service.getLongitudeAndLatitudeForCity("Munich","http://localhost:8089?","1","apiKey");
+       LongLat longLat = service.getLongitudeAndLatitudeForCity("Munich","http://localhost:8089/direct?","1","apiKey");
         //then
         Assert.assertEquals("DE",longLat.getCountry());
-        Assert.assertEquals("2.87", longLat.getLat());
-        Assert.assertEquals("1.23",longLat.getLon());
+        Assert.assertEquals("23.87",longLat.getLon());
+        Assert.assertEquals("34.67",longLat.getLat());
 
     }
 
+    @Test
+    public void test_when_api_returns_404(){
+        LongLat longLat = service.getLongitudeAndLatitudeForCity("Munich","http://localhost:8080/direct?","1","apiKey");
+        Assert.assertNull(longLat.getCountry());
+    }
+
+    @Test
+    public void test_get_weather_success_with_lonLat(){
+        LongLat longLat = new LongLat();
+        longLat.setCountry("DE");
+        longLat.setLat("23.67");
+        longLat.setLon("56.87");
+        WeatherForecast weatherForecast = service.getWeather(longLat,"http://localhost:8089/onecall?","apiKey");
+    }
+
+
+@After
+public void postProcess(){
+    server.stop();
+}
 }
