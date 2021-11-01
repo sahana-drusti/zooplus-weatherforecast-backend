@@ -37,7 +37,6 @@ public class WeatherForecastServiceImpl implements WeatherForecastService {
             logger.debug("entering into class " + getClass().getName() + " of method:" + methodName + " having input argument:" + city);
             LongLat longLat = new LongLat();
             String url = baseURL + "q=" + city + "&limit=" + limit + "&appid=" + appId;
-            System.out.println(url);
             ResponseEntity<LongLat[]> response = null;
             try {
                 response = new RestTemplate().getForEntity(url, LongLat[].class);
@@ -52,6 +51,8 @@ public class WeatherForecastServiceImpl implements WeatherForecastService {
                 if (response != null) {
                     int statusCode = response.getStatusCodeValue();
                     logger.error("Exception throwed while fetching response at classname:" + getClass().getName() + ": method: " + methodName + " error code:" + statusCode + " with exception:" + exception);
+                }else{
+                    exception.printStackTrace();
                 }
             }
             logger.debug("exiting method:" + methodName + " of class:" + getClass().getName());
